@@ -1,0 +1,109 @@
+.Dd $Mdocdate: 2 August 2021 $
+.Dt MSTATUS 1 URM
+.Os DWM
+.Sh NAME
+.Nm mstatus
+.Nd a modular status bar for DWM
+.Sh SYNOPSIS
+.Nm
+.Op Fl r
+.Op Fl s Ar seperator
+.Sh DESCRIPTION
+.Nm
+is a modular status bar for the
+.Xr dwm 1
+window manager.
+The
+.Nm
+status bar is comprised of a series of blocks which can be programmatically added, removed, and
+updated.
+These blocks appear side by side on the status bar seperated by a the string
+.Dq " | " ,
+although this can be configured with the
+.Fl s
+flag.
+Commands are sent to and from the status bar via a named pipe located at
+.Pa $XDG_RUNTIME_DIR/mstatus.pipe
+or
+.Pa /run/user/$(id -u)/mstatus.pipe
+if the
+.Ev $XDG_RUNTIME_DIR
+environment variable is not set.
+.Ss SYNTAX
+The syntax used to send commands is extremely simple.
+Every command sent follows the form
+.Dq (\-?)([0-9]*)(.*)
+or in other words, an optional
+.Sq \-
+followed by an optional unsigned integer, followed by an optional string.
+Starting at the beginning, a leading
+.Sq \-
+tells
+.Nm
+that you would like to remove a block from the status bar.
+If the command does not begin with a
+.Sq \-
+then
+.Nm
+will attempt to create/update a block instead.
+.Pp
+Next, you can optionally provide a number which represents the block you want to act upon.
+As an example, the command
+.Dq \-10
+signals that you would like to remove block 10 from the status bar.
+The command
+.Dq 4
+on the other hand signals that you would like to create/update block 4.
+If no block number is specified, then the specified action will be executed on block 1.
+It is important to note that the command
+.Dq 0
+will be ignored as there is no block 0, however the command
+.Dq \-0
+is special in that it deletes all the blocks from the status bar.
+.Pp
+Finally, after you have provided the optional
+.Sq \-
+flag and have selected the block to act upon, you can provide any string which will be displayed in
+the selected block.
+If the
+.Sq \-
+flag was specified then this string will be simply ignored.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl r
+Add a single space of padding to the right of the status bar.
+.It Fl s Ar seperator
+Set the block seperator to the string specified by
+.Ar seperator
+as opposed to the default of
+.Dq " | " .
+.El
+.Sh EXAMPLES
+Display the current time in block 1, and the current date in block 2:
+.Pp
+.Dl "$ date \(aq+%H:%M\(aq >$XDG_RUNTIME_DIR/mstatus.pipe      # Note the implicit \(aq1\(aq"
+.Dl "$ date \(aq+2%d/%m/%Y\(aq >$XDG_RUNTIME_DIR/mstatus.pipe  # Note the leading \(aq2\(aq"
+.Pp
+Delete the 5th block:
+.Pp
+.Dl $ echo \(aq-5\(aq >$XDG_RUNTIME_DIR/mstatus.pipe
+.Pp
+Replace the entire status bar with
+.Dq Hello world! :
+.Pp
+.Dl $ printf \(aq-0\enHello world!\(aq >$XDG_RUNTIME_DIR/mstatus.pipe
+.Sh EXIT STATUS
+.Ex -std
+.Sh NOTES
+.Nm
+always allocates enough memory to be able to hold as many blocks as the number of the rightmost
+block.
+This means that if you created a block in slots 1 and 2, memory will be allocated for 2 blocks,
+however if you create a block in slots 1, 2, and 300, then memory will be allocated for 300 blocks.
+It is for this reason that you should avoid creating blocks in very high slots without reason.
+Luckily if deleting the block in slot 300 from the above example, the memory for slots 3 to 300 will
+all be freed.
+.Sh BUGS
+As of the initial 1.0 version you cannot have a block which begins with a digit.
+.Sh SEE ALSO
+.Xr dwm 1
