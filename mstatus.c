@@ -136,7 +136,7 @@ write_status(struct Block b)
 	 */
 update_bar:;
 	char buf[sb.length + (sb.count - 1) * seperator.len + 2];
-	memset(buf, '\0', sb.length + 1);
+	memset(buf, '\0', sizeof(buf));
 
 	/* Double for loops so that the seperator isnt printed to the left of the first block */
 	int i;
