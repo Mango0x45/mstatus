@@ -17,7 +17,7 @@
 
 #include <X11/Xlib.h>
 
-#define CTOI(x)  ((x) ^ 48)
+#define CTOI(x) ((x) ^ 48)
 
 struct Block {
 	int pos;
