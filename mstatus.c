@@ -161,12 +161,8 @@ update_bar:;
 }
 
 static bool
-process(char *line, ssize_t len, struct Block *b)
+process(char *line, struct Block *b)
 {
-	/* For some reason output with newlines can cause performance issues */
-	if (line[--len] == '\n')
-		line[len] = '\0';
-
 	if (*line == '-') {
 		b->remove = true;
 		line++;
@@ -273,9 +269,14 @@ main(int argc, char **argv)
 
 		ssize_t nr;
 		while ((nr = getline(&line, &len, fp)) != -1) {
+			/* For some reason output with newlines can cause performance issues */
+			if (line[--nr] == '\n')
+				line[nr] = '\0';
+
 			syslog(LOG_INFO, "Recieved command '%s'", line);
+
 			struct Block b;
-			if (!process(line, nr, &b))
+			if (!process(line, &b))
 				continue;
 			write_status(b);
 		}
