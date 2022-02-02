@@ -32,14 +32,24 @@ struct {
 	size_t len;
 } seperator = {.str = " | ", .len = 3};
 
-static noreturn void
+static noreturn void usage(void);
+static noreturn void die(const char *);
+static void xfork(void);
+static void *xrealloc(void *, size_t);
+static void xfree(char **);
+static void write_status(struct Block);
+static bool process(char *, struct Block *);
+static void create_fifo(char *);
+static void daemonize(void);
+
+void
 usage(void)
 {
 	fprintf(stderr, "Usage: %s [-r] [-s seperator]\n", argv0);
 	exit(EXIT_FAILURE);
 }
 
-static noreturn void
+void
 die(const char *s)
 {
 	char *err = strerror(errno);
@@ -48,7 +58,7 @@ die(const char *s)
 	exit(EXIT_FAILURE);
 }
 
-static void
+void
 xfork(void)
 {
 	pid_t pid = fork();
@@ -58,7 +68,7 @@ xfork(void)
 		exit(EXIT_SUCCESS);
 }
 
-static void *
+void *
 xrealloc(void *ptr, size_t size)
 {
 	void *ret;
@@ -67,14 +77,14 @@ xrealloc(void *ptr, size_t size)
 	return ret;
 }
 
-static void
+void
 xfree(char **ptr)
 {
 	free(*ptr);
 	*ptr = NULL;
 }
 
-static void
+void
 write_status(struct Block b)
 {
 	static struct {
@@ -160,7 +170,7 @@ update_bar:;
 	(void) XCloseDisplay(dpy);
 }
 
-static bool
+bool
 process(char *line, struct Block *b)
 {
 	if (*line == '-') {
@@ -184,7 +194,7 @@ process(char *line, struct Block *b)
 	return true;
 }
 
-static void
+void
 create_fifo(char *fifo_path)
 {
 	char *runtime_dir = getenv("XDG_RUNTIME_DIR");
@@ -213,7 +223,7 @@ create_fifo:
 	syslog(LOG_INFO, "Created input FIFO '%s'", fifo_path);
 }
 
-static void
+void
 daemonize(void)
 {
 	xfork();
