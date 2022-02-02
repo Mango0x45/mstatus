@@ -147,17 +147,19 @@ update_bar:;
 	char buf[sb.length + (sb.count - 1) * seperator.len + 2];
 	memset(buf, '\0', sizeof(buf));
 
-	/* Double for loops so that the seperator isnt printed to the left of the first block */
+	/* Double loops so that the seperator isnt printed to the left of the first block */
 	int i;
+	char *bufptr = buf;
 	for (i = 0; i < sb.count; i++) {
 		if (sb.blocks[i]) {
-			strcpy(buf, sb.blocks[i]);
+			bufptr = stpcpy(buf, sb.blocks[i]);
 			break;
 		}
 	}
-	for (i++; i < sb.count; i++)
+	while (++i < sb.count) {
 		if (sb.blocks[i])
-			sprintf(buf, "%s%s%s", buf, seperator.str, sb.blocks[i]);
+			bufptr = stpcpy(stpcpy(bufptr, seperator.str), sb.blocks[i]);
+	}
 	if (rflag)
 		strcat(buf, " ");
 
