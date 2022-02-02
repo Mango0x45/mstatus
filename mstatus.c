@@ -139,8 +139,7 @@ write_status(struct Block b)
 		die("strdup");
 	sb.length += strlen(b.text);
 
-	/*
-	 * The buffer to store the text that will be displayed in. It needs space for the text, the
+	/* The buffer to store the text that will be displayed in. It needs space for the text, the
 	 * seperators between the different blocks, the NUL byte at the end, and the right padding
 	 * space.
 	 */
@@ -176,8 +175,7 @@ process(char *line, struct Block *b)
 	if (*line == '-') {
 		b->remove = true;
 		line++;
-	}
-	else
+	} else
 		b->remove = false;
 
 	if (!isdigit(*line))
@@ -203,8 +201,7 @@ create_fifo(char *fifo_path)
 		if (runtime_dir[end] == '/')
 			runtime_dir[end] = '\0';
 		sprintf(fifo_path, "%s/%s.pipe", runtime_dir, argv0);
-	}
-	else
+	} else
 		sprintf(fifo_path, _PATH_VARRUN "user/%d/%s.pipe", getuid(), argv0);
 
 	umask(0);
@@ -215,8 +212,7 @@ create_fifo:
 			if (unlink(fifo_path) == -1)
 				die("unlink");
 			goto create_fifo;
-		}
-		else
+		} else
 			die("mkfifo");
 	}
 
