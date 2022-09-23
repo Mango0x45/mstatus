@@ -15,7 +15,9 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include <X11/Xlib.h>
+#ifdef HAS_DWM
+	#include <X11/Xlib.h>
+#endif
 
 #define CTOI(x) ((x) ^ 48)
 
@@ -34,13 +36,16 @@ struct {
 
 static noreturn void usage(void);
 static noreturn void die(const char *);
-static void xfork(void);
 static void *xrealloc(void *, size_t);
 static void xfree(char **);
 static void write_status(struct Block);
 static bool process(char *, struct Block *);
 static void create_fifo(char *);
+
+#ifdef HAS_DWM
 static void daemonize(void);
+static void xfork(void);
+#endif
 
 void
 usage(void)
@@ -58,6 +63,7 @@ die(const char *s)
 	exit(EXIT_FAILURE);
 }
 
+#ifdef HAS_DWM
 void
 xfork(void)
 {
@@ -67,6 +73,7 @@ xfork(void)
 	if (pid != 0)
 		exit(EXIT_SUCCESS);
 }
+#endif
 
 void *
 xrealloc(void *ptr, size_t size)
@@ -163,12 +170,16 @@ update_bar:;
 	if (rflag)
 		strcat(buf, " ");
 
+#ifdef HAS_DWM
 	/* Xlib magic to set the DWM status */
 	Display *dpy = XOpenDisplay(NULL);
 	int screen = DefaultScreen(dpy);
 	Window root = RootWindow(dpy, screen);
 	(void) XStoreName(dpy, root, buf);
 	(void) XCloseDisplay(dpy);
+#else
+	puts(buf);
+#endif
 }
 
 bool
@@ -221,6 +232,7 @@ create_fifo:
 	syslog(LOG_INFO, "Created input FIFO '%s'", fifo_path);
 }
 
+#ifdef HAS_DWM
 void
 daemonize(void)
 {
@@ -242,6 +254,7 @@ daemonize(void)
 
 	syslog(LOG_INFO, "Daemonized '%s'", argv0);
 }
+#endif
 
 int
 main(int argc, char **argv)
@@ -263,10 +276,18 @@ main(int argc, char **argv)
 		}
 	}
 
-	openlog(argv0, LOG_PID | LOG_CONS, LOG_DAEMON);
+	openlog(argv0, LOG_PID | LOG_CONS,
+#ifdef HAS_DWM
+		LOG_DAEMON
+#else
+		LOG_USER
+#endif
+	);
 	char fifo_path[PATH_MAX];
 	create_fifo(fifo_path);
+#ifdef HAS_DWM
 	daemonize();
+#endif
 
 	char *line = NULL;
 	size_t len = 0;
@@ -281,7 +302,7 @@ main(int argc, char **argv)
 			if (line[--nr] == '\n')
 				line[nr] = '\0';
 
-			syslog(LOG_INFO, "Recieved command '%s'", line);
+			syslog(LOG_DEBUG, "Recieved command '%s'", line);
 
 			struct Block b;
 			if (!process(line, &b))

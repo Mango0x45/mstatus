@@ -3,16 +3,19 @@
 target  = mstatus
 
 CC	= cc
-CFLAGS	= -O3 -std=c11 -pedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes
+CFLAGS	= -O3 -std=c11 -pedantic -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Werror
 LDFLAGS	= -lX11
 
 PREFIX	= /usr/local
 
+HAS_DWM	= false
+
 all: ${target}
 ${target}: mstatus.c
-	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $<
+	${HAS_DWM} \
+		&& ${CC} ${CFLAGS} ${LDFLAGS} -DHAS_DWM -o $@ $< \
+		|| ${CC} ${CFLAGS} -o $@ $<
 
-.PHONY: clean install uninstall
 clean:
 	rm -f ${target} ${objects}
 
